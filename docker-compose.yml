@@ -1,0 +1,99 @@
+version: "3.8"
+
+services:
+  traefik:
+    image: traefik:2.4
+    command:
+      - --log.level=${TRAEFIK_LOG_LEVEL}
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
+      - --certificatesresolvers.leresolver.acme.tlschallenge=true
+      # - --certificatesresolvers.leresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
+      - --certificatesresolvers.leresolver.acme.email=${TRAEFIK_ACME_EMAIL}
+      - --certificatesresolvers.leresolver.acme.storage=/letsencrypt/acme.json
+    ports:
+      - "80:80/tcp"
+      - "443:443/tcp"
+    volumes:
+      - ./letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+  mysql:
+    extends:
+      file: base/mariadb-service.yml
+      service: mysql
+
+  memcached:
+    extends:
+      file: base/memcached-service.yml
+      service: memcached
+
+  redis:
+    extends:
+      file: base/redis-service.yml
+      service: redis
+
+  msmtpd:
+    extends:
+      file: base/msmtpd-service.yml
+      service: msmtpd
+
+  rrdcached:
+    extends:
+      file: base/rrdcached-service.yml
+      service: rrdcached
+
+  librenms:
+    extends:
+      file: base/librenms-service.yml
+      service: librenms
+    depends_on:
+      - mysql
+      - memcached
+      - msmtpd
+    env_file:
+      - .env
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.librenms.rule=Host(`${TRAEFIK_DOMAIN}`)
+      - traefik.http.routers.librenms.entrypoints=websecure
+      - traefik.http.routers.librenms.tls.certresolver=leresolver
+      - traefik.http.services.librenms.loadbalancer.server.port=8000
+
+  dispatcher:
+    extends:
+      file: base/librenms-service.yml
+      service: dispatcher
+    depends_on:
+      - librenms
+      - redis
+      - rrdcached
+    env_file:
+      - .env
+
+  syslogng:
+    extends:
+      file: base/librenms-service.yml
+      service: syslogng
+    depends_on:
+      - librenms
+    env_file:
+      - .env
+
+volumes:
+  database_data:
+  rrd_db:
+  rrd_journal:
+  librenms_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./librenms

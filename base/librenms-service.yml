@@ -1,0 +1,38 @@
+---
+version: "3.8"
+
+services:
+  librenms:
+    image: librenms/librenms:latest
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - librenms_data:/data
+    restart: unless-stopped
+
+  dispatcher:
+    image: librenms/librenms:latest
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - librenms_data:/data
+    environment:
+      - DISPATCHER_NODE_ID=dispatcher1
+      - SIDECAR_DISPATCHER=1
+    restart: unless-stopped
+
+  syslogng:
+    image: librenms/librenms:latest
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    ports:
+      - "514:514/tcp"
+      - "514:514/udp"
+    volumes:
+      - librenms_data:/data
+    environment:
+      - SIDECAR_SYSLOGNG=1
+    restart: unless-stopped

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cd ${LIBRENMS_PATH} || exit 1
+yasu librenms:librenms php artisan "$@"

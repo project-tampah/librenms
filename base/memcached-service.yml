@@ -1,0 +1,7 @@
+---
+version: "3.8"
+
+services:
+  memcached:
+    image: memcached:alpine
+    restart: unless-stopped

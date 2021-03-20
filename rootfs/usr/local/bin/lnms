@@ -1,0 +1,3 @@
+#!/bin/sh
+
+yasu librenms:librenms php -f ${LIBRENMS_PATH}/lnms "$@"

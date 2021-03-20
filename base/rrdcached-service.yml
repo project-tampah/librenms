@@ -1,0 +1,18 @@
+---
+version: "3.8"
+
+services:
+  rrdcached:
+    image: crazymax/rrdcached
+    volumes:
+      - rrd_db:/data/db
+      - rrd_journal:/data/journal
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - LOG_LEVEL=LOG_INFO
+      - WRITE_TIMEOUT=1800
+      - WRITE_JITTER=1800
+      - WRITE_THREADS=4
+      - FLUSH_DEAD_DATA_INTERVAL=3600
+    restart: unless-stopped

@@ -1,0 +1,9 @@
+---
+version: "3.8"
+
+services:
+  msmtpd:
+    image: crazymax/msmtpd:latest
+    env_file:
+      - msmtpd.env
+    restart: unless-stopped
