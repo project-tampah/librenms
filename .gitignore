@@ -1,3 +1,5 @@
 .env
 .vscode
-librenms
+
+librenms/**
+!librenms/.gitkeep
