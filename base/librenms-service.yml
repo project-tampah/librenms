@@ -3,7 +3,7 @@ version: "3.8"
 
 services:
   librenms:
-    image: librenms/librenms:latest
+    image: projecttampah/librenms:latest
     cap_add:
       - NET_ADMIN
       - NET_RAW
@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
 
   dispatcher:
-    image: librenms/librenms:latest
+    image: projecttampah/librenms:latest
     cap_add:
       - NET_ADMIN
       - NET_RAW
@@ -24,7 +24,7 @@ services:
     restart: unless-stopped
 
   syslogng:
-    image: librenms/librenms:latest
+    image: projecttampah/librenms:latest
     cap_add:
       - NET_ADMIN
       - NET_RAW
