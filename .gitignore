@@ -3,3 +3,5 @@
 
 librenms/**
 !librenms/.gitkeep
+
+letsencrypt/
