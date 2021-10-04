@@ -1,7 +1,7 @@
-ARG LIBRENMS_VERSION="21.7.0"
+ARG LIBRENMS_VERSION="21.9.1"
 
 FROM crazymax/yasu:latest AS yasu
-FROM crazymax/alpine-s6:3.13-2.2.0.3
+FROM crazymax/alpine-s6:3.14-2.2.0.3
 
 COPY --from=yasu / /
 RUN apk --update --no-cache add \
@@ -62,7 +62,7 @@ RUN apk --update --no-cache add \
     rrdtool \
     runit \
     shadow \
-    syslog-ng=3.30.1-r0 \
+    syslog-ng=3.30.1-r1 \
     ttf-dejavu \
     tzdata \
     util-linux \
@@ -130,7 +130,7 @@ RUN apk --update --no-cache add -t build-dependencies \
 
 COPY rootfs /
 
-EXPOSE 8000 514 514/udp
+EXPOSE 8000 514 514/udp 162 162/udp
 VOLUME [ "/data" ]
 
 ENTRYPOINT [ "/init" ]
