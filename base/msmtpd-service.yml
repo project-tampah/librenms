@@ -3,7 +3,8 @@ version: "3.8"
 
 services:
   msmtpd:
-    image: crazymax/msmtpd:latest
+    # https://hub.docker.com/r/crazymax/msmtpd/
+    image: crazymax/msmtpd:1.8.19
     env_file:
       - msmtpd.env
     restart: unless-stopped

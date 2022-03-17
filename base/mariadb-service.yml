@@ -3,6 +3,7 @@ version: "3.8"
 
 services:
   mysql:
+    # https://hub.docker.com/_/mariadb/
     image: mariadb:10.5
     command:
       - "mysqld"
