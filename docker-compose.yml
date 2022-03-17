@@ -2,7 +2,8 @@ version: "3.8"
 
 services:
   traefik:
-    image: traefik:2.4
+    # https://hub.docker.com/_/traefik/
+    image: traefik:2.6
     command:
       - --log.level=${TRAEFIK_LOG_LEVEL}
       - --api.insecure=true
