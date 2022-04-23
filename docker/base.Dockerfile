@@ -62,7 +62,7 @@ RUN apk --update --no-cache add \
     rrdtool \
     runit \
     shadow \
-    syslog-ng=3.30.1-r3 \
+    syslog-ng=3.36.1-r0 \
     ttf-dejavu \
     tzdata \
     util-linux \
