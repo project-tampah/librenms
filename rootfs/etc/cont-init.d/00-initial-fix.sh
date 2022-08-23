@@ -26,7 +26,7 @@ mkdir -p /data \
 chown librenms:librenms \
     /data \
     "${LIBRENMS_PATH}" \
-    "${LIBRENMS_PATH}/.env" \
+    "${LIBRENMS_PATH}/.env"
 chown -R librenms:librenms \
     /home/librenms \
     /tpls \
