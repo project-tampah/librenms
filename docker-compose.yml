@@ -31,11 +31,6 @@ services:
       file: base/mariadb-service.yml
       service: mysql
 
-  memcached:
-    extends:
-      file: base/memcached-service.yml
-      service: memcached
-
   redis:
     extends:
       file: base/redis-service.yml
@@ -57,7 +52,7 @@ services:
       service: librenms
     depends_on:
       - mysql
-      - memcached
+      - redis
       - msmtpd
     env_file:
       - .env
@@ -85,6 +80,17 @@ services:
       service: syslogng
     depends_on:
       - librenms
+      - redis
+    env_file:
+      - .env
+    
+  snmptrapd:
+    extends:
+      file: base/librenms-service.yml
+      service: snmptrapd
+    depends_on:
+      - librenms
+      - redis
     env_file:
       - .env
 

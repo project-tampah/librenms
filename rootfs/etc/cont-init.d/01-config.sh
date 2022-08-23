@@ -12,16 +12,16 @@ echo "Setting PHP-FPM configuration..."
 sed -e "s/@MEMORY_LIMIT@/$MEMORY_LIMIT/g" \
     -e "s/@UPLOAD_MAX_SIZE@/$UPLOAD_MAX_SIZE/g" \
     -e "s/@CLEAR_ENV@/$CLEAR_ENV/g" \
-    /tpls/etc/php7/php-fpm.d/www.conf >/etc/php7/php-fpm.d/www.conf
+    /tpls/etc/php8/php-fpm.d/www.conf >/etc/php8/php-fpm.d/www.conf
 
 echo "Setting PHP INI configuration..."
-sed -i "s|memory_limit.*|memory_limit = ${MEMORY_LIMIT}|g" /etc/php7/php.ini
-sed -i "s|;date\.timezone.*|date\.timezone = ${TZ}|g" /etc/php7/php.ini
+sed -i "s|memory_limit.*|memory_limit = ${MEMORY_LIMIT}|g" /etc/php8/php.ini
+sed -i "s|;date\.timezone.*|date\.timezone = ${TZ}|g" /etc/php8/php.ini
 
 # OpCache
 echo "Setting OpCache configuration..."
 sed -e "s/@OPCACHE_MEM_SIZE@/$OPCACHE_MEM_SIZE/g" \
-    /tpls/etc/php7/conf.d/opcache.ini >/etc/php7/conf.d/opcache.ini
+    /tpls/etc/php8/conf.d/opcache.ini >/etc/php8/conf.d/opcache.ini
 
 # Nginx
 echo "Setting Nginx configuration..."
@@ -43,8 +43,9 @@ sed -i -e "s/RANDOMSTRINGGOESHERE/${LIBRENMS_SNMP_COMMUNITY}/" /etc/snmp/snmpd.c
 
 # Init files and folders
 echo "Initializing LibreNMS files / folders..."
-mkdir -p /data/config /data/logs /data/monitoring-plugins /data/rrd /data/weathermap /data/alert-templates
-ln -sf /data/weathermap ${LIBRENMS_PATH}/html/plugins/Weathermap/configs
+mkdir -p /data/config /data/logs /data/monitoring-plugins /data/rrd /data/alert-templates
+# removing weathermap, no need
+rm -rf ${LIBRENMS_PATH}/html/plugins/Weathermap
 touch /data/logs/librenms.log
 rm -rf ${LIBRENMS_PATH}/logs
 rm -f ${LIBRENMS_PATH}/config.d/*
@@ -121,15 +122,8 @@ cat >${LIBRENMS_PATH}/config.d/services.php <<EOL
 \$config['nagios_plugins'] = "/usr/lib/monitoring-plugins";
 EOL
 
-# Config : Memcached
-if [ -n "${MEMCACHED_HOST}" ]; then
-    cat >${LIBRENMS_PATH}/config.d/memcached.php <<EOL
-<?php
-\$config['memcached']['enable'] = true;
-\$config['memcached']['host'] = '${MEMCACHED_HOST}';
-\$config['memcached']['port'] = ${MEMCACHED_PORT};
-EOL
-fi
+# Config : Memcached (replaced by redis)
+rm -f ${LIBRENMS_PATH}/config.d/memcached.php
 
 # Config : RRDcached
 if [ -n "${RRDCACHED_SERVER}" ]; then
@@ -149,8 +143,8 @@ EOL
 
 # Fix perms
 echo "Fixing perms..."
-chown librenms. /data/config /data/monitoring-plugins /data/rrd /data/weathermap /data/alert-templates
-chown -R librenms. /data/logs ${LIBRENMS_PATH}/config.d ${LIBRENMS_PATH}/bootstrap ${LIBRENMS_PATH}/logs ${LIBRENMS_PATH}/storage
+chown librenms:librenms /data/config /data/monitoring-plugins /data/rrd /data/alert-templates
+chown -R librenms:librenms /data/logs ${LIBRENMS_PATH}/config.d ${LIBRENMS_PATH}/bootstrap ${LIBRENMS_PATH}/logs ${LIBRENMS_PATH}/storage
 chmod ug+rw /data/logs /data/rrd ${LIBRENMS_PATH}/bootstrap/cache ${LIBRENMS_PATH}/storage ${LIBRENMS_PATH}/storage/framework/*
 
 # Check additional Monitoring plugins

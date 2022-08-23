@@ -6,8 +6,9 @@ LIBRENMS_DAILY_SCHEDULE=${LIBRENMS_DAILY_SCHEDULE:-"15 0 * * *"}
 
 SIDECAR_DISPATCHER=${SIDECAR_DISPATCHER:-0}
 SIDECAR_SYSLOGNG=${SIDECAR_SYSLOGNG:-0}
+SIDECAR_SNMPTRAPD=${SIDECAR_SNMPTRAPD:-0}
 
-if [ "$SIDECAR_DISPATCHER" = "1" ] || [ "$SIDECAR_SYSLOGNG" = "1" ]; then
+if [ "$SIDECAR_DISPATCHER" = "1" ] || [ "$SIDECAR_SYSLOGNG" = "1" ] || [ "$SIDECAR_SNMPTRAPD" = "1" ]; then
   exit 0
 fi
 
@@ -19,11 +20,6 @@ touch ${CRONTAB_PATH}/librenms
 # Cron
 echo "Creating LibreNMS daily.sh cron task with the following period fields: $LIBRENMS_DAILY_SCHEDULE"
 echo "${LIBRENMS_DAILY_SCHEDULE} cd ${LIBRENMS_PATH} && bash daily.sh" >>${CRONTAB_PATH}/librenms
-
-if [ "$LIBRENMS_WEATHERMAP" = "true" ] && [ -n "$LIBRENMS_WEATHERMAP_SCHEDULE" ]; then
-  echo "Creating LibreNMS Weathermap cron task with the following period fields: $LIBRENMS_WEATHERMAP_SCHEDULE"
-  echo "${LIBRENMS_WEATHERMAP_SCHEDULE} php -f ${LIBRENMS_PATH}/html/plugins/Weathermap/map-poller.php" >>${CRONTAB_PATH}/librenms
-fi
 
 # Fix perms
 echo "Fixing crontabs permissions..."

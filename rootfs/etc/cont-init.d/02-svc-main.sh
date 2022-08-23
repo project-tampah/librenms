@@ -4,8 +4,9 @@
 
 SIDECAR_DISPATCHER=${SIDECAR_DISPATCHER:-0}
 SIDECAR_SYSLOGNG=${SIDECAR_SYSLOGNG:-0}
+SIDECAR_SNMPTRAPD=${SIDECAR_SNMPTRAPD:-0}
 
-if [ "$SIDECAR_DISPATCHER" = "1" ] || [ "$SIDECAR_SYSLOGNG" = "1" ]; then
+if [ "$SIDECAR_DISPATCHER" = "1" ] || [ "$SIDECAR_SYSLOGNG" = "1" ] || [ "$SIDECAR_SNMPTRAPD" = "1" ]; then
     exit 0
 fi
 
@@ -18,7 +19,7 @@ NODE_ID=$(php -r "echo uniqid();")
 EOL
 fi
 cat "/data/.env" >>"${LIBRENMS_PATH}/.env"
-chown librenms. /data/.env "${LIBRENMS_PATH}/.env"
+chown librenms:librenms /data/.env "${LIBRENMS_PATH}/.env"
 
 file_env 'MYSQL_PASSWORD'
 if [ -z "$MYSQL_PASSWORD" ]; then
@@ -69,7 +70,7 @@ cat >/etc/services.d/php-fpm/run <<EOL
 #!/usr/bin/execlineb -P
 with-contenv
 s6-setuidgid ${PUID}:${PGID}
-php-fpm7 -F
+php-fpm8 -F
 EOL
 chmod +x /etc/services.d/php-fpm/run
 

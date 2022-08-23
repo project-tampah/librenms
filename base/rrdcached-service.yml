@@ -4,7 +4,7 @@ version: "3.8"
 services:
   rrdcached:
     # https://hub.docker.com/r/crazymax/rrdcached
-    image: crazymax/rrdcached:1.7.2-r4
+    image: crazymax/rrdcached:1.7.2-r5
     volumes:
       - rrd_db:/data/db
       - rrd_journal:/data/journal
