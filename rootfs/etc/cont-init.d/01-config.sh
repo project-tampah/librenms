@@ -12,16 +12,16 @@ echo "Setting PHP-FPM configuration..."
 sed -e "s/@MEMORY_LIMIT@/$MEMORY_LIMIT/g" \
     -e "s/@UPLOAD_MAX_SIZE@/$UPLOAD_MAX_SIZE/g" \
     -e "s/@CLEAR_ENV@/$CLEAR_ENV/g" \
-    /tpls/etc/php8/php-fpm.d/www.conf >/etc/php8/php-fpm.d/www.conf
+    /tpls/etc/php81/php-fpm.d/www.conf >/etc/php81/php-fpm.d/www.conf
 
 echo "Setting PHP INI configuration..."
-sed -i "s|memory_limit.*|memory_limit = ${MEMORY_LIMIT}|g" /etc/php8/php.ini
-sed -i "s|;date\.timezone.*|date\.timezone = ${TZ}|g" /etc/php8/php.ini
+sed -i "s|memory_limit.*|memory_limit = ${MEMORY_LIMIT}|g" /etc/php81/php.ini
+sed -i "s|;date\.timezone.*|date\.timezone = ${TZ}|g" /etc/php81/php.ini
 
 # OpCache
 echo "Setting OpCache configuration..."
 sed -e "s/@OPCACHE_MEM_SIZE@/$OPCACHE_MEM_SIZE/g" \
-    /tpls/etc/php8/conf.d/opcache.ini >/etc/php8/conf.d/opcache.ini
+    /tpls/etc/php81/conf.d/opcache.ini >/etc/php81/conf.d/opcache.ini
 
 # Nginx
 echo "Setting Nginx configuration..."
@@ -43,7 +43,7 @@ sed -i -e "s/RANDOMSTRINGGOESHERE/${LIBRENMS_SNMP_COMMUNITY}/" /etc/snmp/snmpd.c
 
 # Init files and folders
 echo "Initializing LibreNMS files / folders..."
-mkdir -p /data/config /data/logs /data/monitoring-plugins /data/rrd /data/alert-templates
+mkdir -p /data/config /data/logs /data/monitoring-plugins /data/plugins /data/rrd /data/alert-templates
 # removing weathermap, no need
 rm -rf ${LIBRENMS_PATH}/html/plugins/Weathermap
 touch /data/logs/librenms.log
@@ -74,72 +74,83 @@ DB_PASSWORD=${MYSQL_PASSWORD}
 EOL
 
 # Config : Directories
-cat >${LIBRENMS_PATH}/config.d/directories.php <<EOL
-<?php
-\$config['install_dir'] = '${LIBRENMS_PATH}';
-\$config['log_dir'] = '/data/logs';
-\$config['rrd_dir'] = '/data/rrd';
+cat >${LIBRENMS_PATH}/database/seeders/config/directories.yaml <<EOL
+install_dir: '${LIBRENMS_PATH}'
+log_dir: /data/logs
+rrd_dir: /data/rrd
 EOL
 ln -sf /data/logs ${LIBRENMS_PATH}/logs
 
 # Config : Server
-cat >${LIBRENMS_PATH}/config.d/server.php <<EOL
-<?php
-\$config['own_hostname'] = '$(hostname)';
-\$config['base_url'] = '${LIBRENMS_BASE_URL}';
+cat >${LIBRENMS_PATH}/database/seeders/config/server.yaml <<EOL
+own_hostname: '$(hostname)'
+base_url: '${LIBRENMS_BASE_URL}'
 EOL
 
 # Config : User
-cat >${LIBRENMS_PATH}/config.d/user.php <<EOL
-<?php
-\$config['user'] = "librenms";
-\$config['group'] = "librenms";
+cat >${LIBRENMS_PATH}/database/seeders/config/user.yaml <<EOL
+user: librenms
+group: librenms
 EOL
 
 # Config : Fping
-cat >${LIBRENMS_PATH}/config.d/fping.php <<EOL
-<?php
-\$config['fping'] = "/usr/sbin/fping";
-\$config['fping6'] = "/usr/sbin/fping6";
+cat >${LIBRENMS_PATH}/database/seeders/config/fping.yaml <<EOL
+fping: /usr/sbin/fping
+fping6: /usr/sbin/fping6
 EOL
 
 # Config : ipmitool
-cat >${LIBRENMS_PATH}/config.d/ipmitool.php <<EOL
-<?php
-\$config['ipmitool'] = "/usr/sbin/ipmitool";
+cat >${LIBRENMS_PATH}/database/seeders/config/ipmitool.yaml <<EOL
+ipmitool: /usr/sbin/ipmitool
 EOL
 
-# Config : Disable autoupdate
+# Config : Disable autoupdate (set in config.php so it cannot be overridden in the webui)
 cat >${LIBRENMS_PATH}/config.d/autoupdate.php <<EOL
 <?php
 \$config['update'] = 0;
 EOL
 
 # Config : Services
-cat >${LIBRENMS_PATH}/config.d/services.php <<EOL
-<?php
-\$config['show_services'] = 1;
-\$config['nagios_plugins'] = "/usr/lib/monitoring-plugins";
+cat >${LIBRENMS_PATH}/database/seeders/config/services.yaml <<EOL
+show_services: true
+nagios_plugins: /usr/lib/monitoring-plugins
 EOL
 
 # Config : Memcached (replaced by redis)
 rm -f ${LIBRENMS_PATH}/config.d/memcached.php
 
-# Config : RRDcached
+# Config : RRDCached, apply RRDCACHED_SERVER as php as it would be expected to change with the variable
 if [ -n "${RRDCACHED_SERVER}" ]; then
     cat >${LIBRENMS_PATH}/config.d/rrdcached.php <<EOL
 <?php
 \$config['rrdcached'] = "${RRDCACHED_SERVER}";
-\$config['rrdtool_version'] = "1.7.2";
 EOL
 fi
+cat >${LIBRENMS_PATH}/database/seeders/config/rrdtool.yaml <<EOL
+rrdtool_version: "1.7.2"
+EOL
 
 # Config : Dispatcher
-cat >${LIBRENMS_PATH}/config.d/dispatcher.php <<EOL
-<?php
-\$config['service_update_enabled'] = false;
-\$config['service_watchdog_enabled'] = false;
+cat >${LIBRENMS_PATH}/database/seeders/config/dispatcher.yaml <<EOL
+service_update_enabled: false
+service_watchdog_enabled: false
 EOL
+
+# Check plugins
+echo "Checking LibreNMS plugins..."
+plugins=$(ls -l /data/plugins | egrep '^d' | awk '{print $9}')
+for plugin in ${plugins}; do
+    if [ "${plugin}" == "Weathermap" ]; then
+        echo "  WARNING: Plugin Weathermap cannot be overriden. Skipping..."
+        continue
+    fi
+    echo "  Linking plugin ${plugin}..."
+    if [ -d "${LIBRENMS_PATH}/html/plugins/${plugin}" ]; then
+        rm -rf "${LIBRENMS_PATH}/html/plugins/${plugin}"
+    fi
+    ln -sf "/data/plugins/${plugin}" "${LIBRENMS_PATH}/html/plugins/${plugin}"
+    chown -h librenms:librenms "${LIBRENMS_PATH}/html/plugins/${plugin}"
+done
 
 # Fix perms
 echo "Fixing perms..."

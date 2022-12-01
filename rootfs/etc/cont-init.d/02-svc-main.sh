@@ -41,7 +41,13 @@ while ! ${dbcmd} -e "show databases;" >/dev/null 2>&1; do
     fi
 done
 echo "Database ready!"
+
+# Enable first run wizard if db is empty
 counttables=$(echo 'SHOW TABLES' | ${dbcmd} "$MYSQL_DATABASE" | wc -l)
+if [ "${counttables}" -eq "0" ]; then
+    echo "Enabling First Run Wizard..."
+    echo "INSTALL=user,finish" >>${LIBRENMS_PATH}/.env
+fi
 
 echo "Updating database schema..."
 lnms migrate --force --no-ansi --no-interaction
@@ -50,11 +56,6 @@ artisan db:seed --force --no-ansi --no-interaction
 echo "Clear cache"
 artisan cache:clear --no-interaction
 artisan config:cache --no-interaction
-
-if [ "${counttables}" -eq "0" ]; then
-    echo "Creating admin user..."
-    lnms user:add --password=librenms --email=librenms@librenms.docker --role=admin --no-ansi --no-interaction librenms
-fi
 
 mkdir -p /etc/services.d/nginx
 cat >/etc/services.d/nginx/run <<EOL
@@ -70,7 +71,7 @@ cat >/etc/services.d/php-fpm/run <<EOL
 #!/usr/bin/execlineb -P
 with-contenv
 s6-setuidgid ${PUID}:${PGID}
-php-fpm8 -F
+php-fpm81 -F
 EOL
 chmod +x /etc/services.d/php-fpm/run
 
