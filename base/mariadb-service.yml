@@ -16,7 +16,7 @@ services:
     environment:
       - MYSQL_ALLOW_EMPTY_PASSWORD=yes
     env_file:
-      - ../.env
+      - ./.env
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 10s
