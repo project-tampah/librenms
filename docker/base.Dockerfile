@@ -1,7 +1,7 @@
-ARG LIBRENMS_VERSION="23.2.0"
+ARG LIBRENMS_VERSION="23.5.0"
 
 FROM crazymax/yasu:latest AS yasu
-FROM crazymax/alpine-s6:3.16-2.2.0.3
+FROM crazymax/alpine-s6:3.17-2.2.0.3
 
 COPY --from=yasu / /
 RUN apk --update --no-cache add \
@@ -20,6 +20,7 @@ RUN apk --update --no-cache add \
     imagemagick \
     ipmitool \
     iputils \
+    libcap-utils \
     mariadb-client \
     monitoring-plugins \
     mtr \
@@ -63,7 +64,7 @@ RUN apk --update --no-cache add \
     rrdtool \
     runit \
     shadow \
-    syslog-ng=3.36.1-r0 \
+    syslog-ng=3.38.1-r0 \
     ttf-dejavu \
     tzdata \
     util-linux \
