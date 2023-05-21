@@ -69,7 +69,6 @@ RUN apk --update --no-cache add \
     tzdata \
     util-linux \
     whois \
-    && ln -s /usr/bin/php81 /usr/bin/php \
     && apk --update --no-cache add -t build-dependencies \
     build-base \
     make \
